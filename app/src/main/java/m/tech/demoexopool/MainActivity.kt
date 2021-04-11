@@ -1,11 +1,9 @@
 package m.tech.demoexopool
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
-import m.tech.demoexopool.exo.ExoController
 import m.tech.demoexopool.exo.HnimExo
 
 class MainActivity : AppCompatActivity() {
@@ -15,9 +13,10 @@ class MainActivity : AppCompatActivity() {
 
         val hnimExo = HnimExo.Builder(this)
             .exoPool(5)
-            .autoPlay(true)
-            .isMuted(false)
-            .lifeCycle(lifecycle)
+            .autoPlay(true) //auto play when video is buffered
+            .isMuted(false) //volume on/off
+            .isSaveState(false) //save position of video if its exo still in pool
+            .lifeCycle(lifecycle) //handle pause, resume with lifecycle or you can do it manually
             .create()
 
         val vp2 = findViewById<ViewPager2>(R.id.vp2)

@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.exoplayer2.ui.PlayerView
+import m.tech.demoexopool.exo.ExoController
 import m.tech.demoexopool.exo.ExoProvider
 import m.tech.demoexopool.exo.HnimExo
 
@@ -82,7 +83,7 @@ class VideoAdapter(
                 thumbSource = item.thumb,
                 useController = true,
                 playerView = itemView.findViewById(R.id.playerView),
-                listener = object: ExoProvider.HnimExoPlayerListener{
+                listener = object: ExoController.HnimExoPlayerListener{
                     override fun onEnded() {
                         super.onEnded()
                         onMoveToNext()

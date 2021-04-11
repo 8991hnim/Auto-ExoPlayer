@@ -5,6 +5,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.widget.ViewPager2
 import java.lang.ref.WeakReference
 
+/**
+ * @author: 89hnim
+ * @since: 12/04/2021
+ */
 class HnimExo(
     private val controller: ExoController,
     lifeCycle: Lifecycle?
@@ -24,8 +28,8 @@ class HnimExo(
                 }
             })
 
-            //tính lại exo pool nếu offscreen limit không phải default
-            //tránh set offscreenPageLimit vì exoPool sẽ rất lớn
+            /*  tính lại exo pool nếu offscreen limit không phải default
+                tránh set offscreenPageLimit vì exoPool sẽ rất lớn */
             if (it.offscreenPageLimit != ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT)
                 controller.setExoPool(it.offscreenPageLimit * 2 + 1 + it.offscreenPageLimit)
         }
@@ -71,6 +75,11 @@ class HnimExo(
             return this
         }
 
+        fun isSaveState(isSaveState: Boolean): Builder {
+            this.controller.setSaveState(isSaveState)
+            return this
+        }
+
         fun create(): HnimExo {
             return HnimExo(controller, lifeCycle)
         }
@@ -80,7 +89,7 @@ class HnimExo(
     companion object {
         private const val DEFAULT_EXO_POOL = 5
         private const val MIN_EXO_POOL = 4 //chưa rõ offscreenlimit default của vp2, cần check lại
-        private const val TAG = "HnimExo"
+        private const val TAG = "HnimExo::HnimExo"
     }
 
 }

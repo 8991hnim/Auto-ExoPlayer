@@ -12,7 +12,7 @@ interface HnimExoController {
         useController: Boolean,
         playerView: PlayerView,
         thumbnail: AppCompatImageView?,
-        listener: ExoProvider.HnimExoPlayerListener
+        listener: ExoController.HnimExoPlayerListener
     )
 
     fun play(position: Int)
@@ -27,6 +27,6 @@ interface HnimExoController {
 
     fun setMuted(position: Int, isMuted: Boolean)
 
-
+    fun setSaveState(saveState: Boolean)
 
 }

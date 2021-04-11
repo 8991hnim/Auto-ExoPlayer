@@ -1,10 +1,16 @@
 package m.tech.demoexopool.exo
 
 import android.content.Context
+import android.util.Log
 import androidx.appcompat.widget.AppCompatImageView
+import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ui.PlayerView
 import java.lang.ref.WeakReference
 
+/**
+ * @author: 89hnim
+ * @since: 12/04/2021
+ */
 class ExoController(
     private val exoPool: Int,
     private val context: Context
@@ -12,14 +18,30 @@ class ExoController(
 
     private var autoPlay: Boolean = false
     private var isMuted: Boolean = false
+    private var isSaveState: Boolean = false
 
     private val exoProvider: ExoProvider by lazy {
         ExoProvider(exoPool, WeakReference(context))
     }
 
+    //hàm thật sự play video
     fun togglePlayer(currentPosition: Int) {
+        Log.d(TAG, "togglePlayer: $currentPosition")
+
         exoProvider.setCurrentPosition(currentPosition)
-        exoProvider.togglePlayer(autoPlay = autoPlay, isMuted = isMuted)
+
+        exoProvider.exoPlayers().forEach {
+            if (!isSaveState)
+                it.value.seekTo(0)
+
+            it.value.volume = if (isMuted) 0f else 1f
+
+            if (it.key == currentPosition) {
+                it.value.playWhenReady = autoPlay
+            } else {
+                it.value.playWhenReady = false
+            }
+        }
     }
 
     //sẽ được gọi nếu offscreenlimit của vp2 khác mặc định
@@ -41,15 +63,15 @@ class ExoController(
         useController: Boolean,
         playerView: PlayerView,
         thumbnail: AppCompatImageView?,
-        listener: ExoProvider.HnimExoPlayerListener
+        listener: HnimExoPlayerListener
     ) {
         exoProvider.setupWith(
             position = position,
             source = source,
             thumbSource = thumbSource,
-            thumbnail = thumbnail,
+            thumbnail = if (thumbnail != null) WeakReference(thumbnail) else null,
             useController = useController,
-            playerView = playerView,
+            playerView = WeakReference(playerView),
             listener = listener
         )
     }
@@ -79,5 +101,23 @@ class ExoController(
         exoProvider.exoPlayers()[position]?.volume = if (isMuted) 0f else 1f
     }
 
+    override fun setSaveState(saveState: Boolean) {
+        this.isSaveState = saveState
+    }
 
+    interface HnimExoPlayerListener {
+        fun onBuffering() {}
+
+        fun onReady() {}
+
+        fun onEnded() {}
+
+        fun onPlayingChanged(isPlaying: Boolean) {}
+
+        fun onError(exception: ExoPlaybackException) {}
+    }
+
+    companion object {
+        private const val TAG = "HnimExo::ExoController"
+    }
 }

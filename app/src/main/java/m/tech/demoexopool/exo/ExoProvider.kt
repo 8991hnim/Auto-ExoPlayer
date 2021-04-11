@@ -13,6 +13,10 @@ import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.PlayerView
 import java.lang.ref.WeakReference
 
+/**
+ * @author: 89hnim
+ * @since: 12/04/2021
+ */
 class ExoProvider
 constructor(
     private var exoPool: Int,
@@ -25,22 +29,23 @@ constructor(
     private var minPosition = Integer.MAX_VALUE
     private var currentPosition = 0
 
+    //hàm prepare exo
     fun setupWith(
         position: Int,
         source: String,
         thumbSource: String?,
-        thumbnail: AppCompatImageView?,
+        thumbnail: WeakReference<AppCompatImageView>?,
         useController: Boolean,
-        playerView: PlayerView,
-        listener: HnimExoPlayerListener
+        playerView: WeakReference<PlayerView>,
+        listener: ExoController.HnimExoPlayerListener
     ) {
         Log.d(TAG, "setupWith: $position - ${playerView.hashCode()}")
         context.get()?.let { context ->
             if (exoPlayers[position] == null) {
                 SimpleExoPlayer.Builder(context).build().apply {
                     //gắn exo cho player view
-                    playerView.player = this
-                    playerView.useController = useController
+                    playerView.get()?.player = this
+                    playerView.get()?.useController = useController
 
                     //callback
                     registerPlayerListener(this, thumbSource, thumbnail, listener)
@@ -56,7 +61,7 @@ constructor(
             } else {
                 //trường hợp view bị recycled, player view cần được gắn lại exo
                 registerPlayerListener(exoPlayers[position]!!, thumbSource, thumbnail, listener)
-                playerView.player = exoPlayers[position]
+                playerView.get()?.player = exoPlayers[position]
             }
         }
     }
@@ -64,8 +69,8 @@ constructor(
     private fun registerPlayerListener(
         exoPlayer: SimpleExoPlayer,
         thumbSource: String?,
-        thumbnail: AppCompatImageView?,
-        listener: HnimExoPlayerListener
+        thumbnail: WeakReference<AppCompatImageView>?,
+        listener: ExoController.HnimExoPlayerListener
     ) {
         exoPlayer.addListener(object : EventListener {
             override fun onPlayerError(error: ExoPlaybackException) {
@@ -77,16 +82,14 @@ constructor(
                 super.onPlaybackStateChanged(state)
                 when (state) {
                     STATE_BUFFERING -> {
-                        if (thumbnail != null) {
+                        thumbnail?.get()?.let { thumbnail ->
                             thumbnail.isVisible = true
                             glide?.load(thumbSource)?.into(thumbnail)
                         }
                         listener.onBuffering()
                     }
                     STATE_READY -> {
-                        if (thumbnail != null) {
-                            thumbnail.isVisible = false
-                        }
+                        thumbnail?.get()?.isVisible = false
                         listener.onReady()
                     }
                     STATE_ENDED -> listener.onEnded()
@@ -106,22 +109,6 @@ constructor(
 
     fun exoPlayers() = exoPlayers
 
-    fun togglePlayer(autoPlay: Boolean, isMuted: Boolean) {
-        Log.d(TAG, "togglePlayer: $currentPosition")
-
-        exoPlayers.forEach {
-            it.value.seekTo(0)
-
-            it.value.volume = if (isMuted) 0f else 1f
-
-            if (it.key == currentPosition) {
-                it.value.playWhenReady = autoPlay
-            } else {
-                it.value.playWhenReady = false
-            }
-        }
-    }
-
     fun setCurrentPosition(position: Int) {
         this.currentPosition = position
     }
@@ -133,7 +120,7 @@ constructor(
 
         if (tagPosition > maxPosition)
             maxPosition = tagPosition
-        else if (tagPosition < minPosition)
+        if (tagPosition < minPosition)
             minPosition = tagPosition
 
         //nếu pool đã max -> xóa phần tử xa nhất
@@ -157,7 +144,7 @@ constructor(
         val maxValue = maxPosition
         val centerValue = (maxValue + minValue) / 2f
 
-//        Log.d(TAG, "findFurthestPosition: $currentPosition - $minPosition - $maxPosition")
+        Log.d(TAG, "findFurthestPosition: $currentPosition - $minPosition - $maxPosition")
 
         return if (currentPosition >= centerValue) {
             //vị trí xa nhất là vị trí nhỏ nhất
@@ -170,21 +157,7 @@ constructor(
         }
     }
 
-    interface HnimExoPlayerListener {
-        fun onBuffering() {}
-
-        fun onReady() {}
-
-        fun onEnded() {}
-
-        fun onPlayingChanged(isPlaying: Boolean) {}
-
-        fun onError(exception: ExoPlaybackException) {}
-    }
-
     companion object {
-        private const val TAG = "ExoProvider"
+        private const val TAG = "HnimExo::ExoProvider"
     }
 }
-
-
