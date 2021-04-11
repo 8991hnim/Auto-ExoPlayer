@@ -38,48 +38,19 @@ constructor(
         context.get()?.let { context ->
             if (exoPlayers[position] == null) {
                 SimpleExoPlayer.Builder(context).build().apply {
+                    //gắn exo cho player view
                     playerView.player = this
                     playerView.useController = useController
 
-                    addListener(object : EventListener {
-                        override fun onPlayerError(error: ExoPlaybackException) {
-                            super.onPlayerError(error)
-                            listener.onError(error)
-                        }
+                    //callback
+                    registerPlayerListener(this, thumbSource, thumbnail, listener)
 
-                        override fun onPlaybackStateChanged(state: Int) {
-                            super.onPlaybackStateChanged(state)
-                            when (state) {
-                                STATE_BUFFERING -> {
-                                    Log.d(TAG, "onPlaybackStateChanged: $position - buffering")
-                                    if (thumbnail != null) {
-                                        thumbnail.isVisible = true
-                                        glide?.load(thumbSource)?.into(thumbnail)
-                                    }
-                                    listener.onBuffering()
-                                }
-                                STATE_READY -> {
-                                    Log.d(TAG, "onPlaybackStateChanged: $position - ready")
-
-                                    if (thumbnail != null) {
-                                        thumbnail.isVisible = false
-                                    }
-                                    listener.onReady()
-                                }
-                                STATE_ENDED -> listener.onEnded()
-                            }
-                        }
-
-                        override fun onIsPlayingChanged(isPlaying: Boolean) {
-                            super.onIsPlayingChanged(isPlaying)
-                            listener.onPlayingChanged(isPlaying)
-                        }
-                    })
-
+                    //tạo exo
                     val mediaItem = MediaItem.fromUri(Uri.parse(source))
                     this.setMediaItem(mediaItem)
                     prepare()
 
+                    //add vào pool
                     addToExoPool(position, this)
                 }
             } else {
@@ -155,6 +126,7 @@ constructor(
         this.currentPosition = position
     }
 
+    //add exo player vào pool, nếu pool đầy xóa phần tử xa nhất
     private fun addToExoPool(tagPosition: Int, player: SimpleExoPlayer) {
         Log.d(TAG, "addToExoPool: position $tagPosition")
         exoPlayers[tagPosition] = player
@@ -164,11 +136,10 @@ constructor(
         else if (tagPosition < minPosition)
             minPosition = tagPosition
 
-        //nếu pool đã max -> xóa phần tử đầu trong pool
+        //nếu pool đã max -> xóa phần tử xa nhất
         if (exoPlayers.size > exoPool) {
             removeItemInPool()
         }
-
     }
 
     private fun removeItemInPool() {

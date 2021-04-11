@@ -25,7 +25,7 @@ class HnimExo(
             })
 
             //tính lại exo pool nếu offscreen limit không phải default
-            //k nên set offscreenPageLimit vì exoPool sẽ rất lớn
+            //tránh set offscreenPageLimit vì exoPool sẽ rất lớn
             if (it.offscreenPageLimit != ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT)
                 controller.setExoPool(it.offscreenPageLimit * 2 + 1 + it.offscreenPageLimit)
         }

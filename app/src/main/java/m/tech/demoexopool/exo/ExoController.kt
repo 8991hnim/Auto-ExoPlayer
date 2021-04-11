@@ -22,10 +22,12 @@ class ExoController(
         exoProvider.togglePlayer(autoPlay = autoPlay, isMuted = isMuted)
     }
 
+    //sẽ được gọi nếu offscreenlimit của vp2 khác mặc định
     fun setExoPool(exoPool: Int) {
         exoProvider.setExoPool(exoPool)
     }
 
+    //gọi khi lifecycle onPause
     fun pauseAll() {
         exoProvider.exoPlayers().values.forEach {
             it.playWhenReady = false
