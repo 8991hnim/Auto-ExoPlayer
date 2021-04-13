@@ -1,5 +1,6 @@
-package m.tech.demoexopool.exo
+package com.gg.gapo.video.hnim_exo
 
+import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import com.google.android.exoplayer2.ui.PlayerView
 
@@ -12,6 +13,7 @@ interface HnimExoController {
         useController: Boolean,
         playerView: PlayerView,
         thumbnail: AppCompatImageView?,
+        loadingView: View?,
         listener: ExoController.HnimExoPlayerListener
     )
 

@@ -1,4 +1,4 @@
-package m.tech.demoexopool.exo
+package com.gg.gapo.video.hnim_exo
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver

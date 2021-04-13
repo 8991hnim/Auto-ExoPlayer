@@ -1,8 +1,12 @@
-package m.tech.demoexopool.exo
+package com.gg.gapo.video.hnim_exo
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.widget.ViewPager2
+import com.gg.gapo.video.hnim_exo.BusEven.HE_MOVE_TO_NEXT
+import org.simple.eventbus.EventBus
+import org.simple.eventbus.Subscriber
 import java.lang.ref.WeakReference
 
 /**
@@ -31,19 +35,58 @@ class HnimExo(
             /*  tính lại exo pool nếu offscreen limit không phải default
                 tránh set offscreenPageLimit vì exoPool sẽ rất lớn */
             if (it.offscreenPageLimit != ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT)
-                controller.setExoPool(it.offscreenPageLimit * 2 + 1 + it.offscreenPageLimit)
+//                controller.setExoPool(it.offscreenPageLimit * 2 + 1 + it.offscreenPageLimit)
+                controller.setExoPool(it.offscreenPageLimit * 2 + 1)
         }
     }
 
     init {
-        lifeCycle?.launchWhenStopped {
-            controller.pauseAll()
-            return@launchWhenStopped true
-        }
-
         lifeCycle?.launchWhenResumed {
             this.vp2?.get()?.currentItem?.let { controller.play(it) }
             return@launchWhenResumed true
+        }
+
+        lifeCycle?.launchWhenStarted {
+            EventBus.getDefault().register(this)
+            return@launchWhenStarted true
+        }
+
+        lifeCycle?.launchWhenStopped {
+            controller.pauseAll()
+            EventBus.getDefault().unregister(this)
+            return@launchWhenStopped true
+        }
+    }
+
+    fun onDestroy() {
+        clear()
+    }
+
+    fun clear() {
+        controller.clear()
+    }
+
+    fun onPause() {
+        controller.pauseAll()
+    }
+
+    fun onResume() {
+        this.vp2?.get()?.currentItem?.let {
+            controller.play(it)
+        }
+    }
+
+    /**
+       * Prevent callback twice b/c of not properly exo player callback
+     * Need fix later
+     */
+    private var lastTimeMoveToNext = 0L
+    @Subscriber(tag = HE_MOVE_TO_NEXT)
+    fun onMoveToNextVideo(ev: Int) {
+        this.vp2?.get()?.let { vp2 ->
+            if(System.currentTimeMillis() - lastTimeMoveToNext < 1000) return@let
+            lastTimeMoveToNext = System.currentTimeMillis()
+            vp2.setCurrentItem(vp2.currentItem + 1, true)
         }
     }
 
@@ -77,6 +120,11 @@ class HnimExo(
 
         fun isSaveState(isSaveState: Boolean): Builder {
             this.controller.setSaveState(isSaveState)
+            return this
+        }
+
+        fun autoMoveNext(isAutoMoveNext: Boolean): Builder {
+            this.controller.setAutoMoveNext(isAutoMoveNext)
             return this
         }
 

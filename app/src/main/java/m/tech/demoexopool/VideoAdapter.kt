@@ -4,14 +4,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.appcompat.widget.AppCompatImageView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.exoplayer2.ui.PlayerView
-import m.tech.demoexopool.exo.ExoController
-import m.tech.demoexopool.exo.ExoProvider
-import m.tech.demoexopool.exo.HnimExo
+import com.gg.gapo.video.hnim_exo.ExoController
+import com.gg.gapo.video.hnim_exo.HnimExo
+import com.google.android.exoplayer2.ExoPlaybackException
 
 class VideoAdapter(
     private val hnimExo: HnimExo,
@@ -54,6 +52,29 @@ class VideoAdapter(
         itemView: View
     ) : RecyclerView.ViewHolder(itemView) {
 
+        private val listener = object : ExoController.HnimExoPlayerListener {
+            override fun onBuffering() {
+                super.onBuffering()
+            }
+
+            override fun onReady() {
+                super.onReady()
+            }
+
+            override fun onEnded() {
+                super.onEnded()
+            }
+
+            override fun onPlayingChanged(isPlaying: Boolean) {
+                super.onPlayingChanged(isPlaying)
+            }
+
+            override fun onError(exception: ExoPlaybackException) {
+                super.onError(exception)
+            }
+        }
+
+
         fun bind(item: VideoItem) = with(itemView) {
             itemView.findViewById<TextView>(R.id.tvTest).text = item.name + " - " + adapterPosition
 
@@ -81,14 +102,10 @@ class VideoAdapter(
                 source = item.source,
                 thumbnail =  itemView.findViewById(R.id.thumbnail),
                 thumbSource = item.thumb,
+                loadingView = null,
                 useController = true,
                 playerView = itemView.findViewById(R.id.playerView),
-                listener = object: ExoController.HnimExoPlayerListener{
-                    override fun onEnded() {
-                        super.onEnded()
-                        onMoveToNext()
-                    }
-                }
+                listener = listener
             )
 
         }

@@ -1,7 +1,8 @@
-package m.tech.demoexopool.exo
+package com.gg.gapo.video.hnim_exo
 
 import android.content.Context
 import android.util.Log
+import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ui.PlayerView
@@ -19,6 +20,7 @@ class ExoController(
     private var autoPlay: Boolean = false
     private var isMuted: Boolean = false
     private var isSaveState: Boolean = false
+    private var isAutoMoveNext: Boolean = false
 
     private val exoProvider: ExoProvider by lazy {
         ExoProvider(exoPool, WeakReference(context))
@@ -31,9 +33,9 @@ class ExoController(
         exoProvider.setCurrentPosition(currentPosition)
 
         exoProvider.exoPlayers().forEach {
-            if (!isSaveState)
+            if (!isSaveState) {
                 it.value.seekTo(0)
-
+            }
             it.value.volume = if (isMuted) 0f else 1f
 
             if (it.key == currentPosition) {
@@ -63,6 +65,7 @@ class ExoController(
         useController: Boolean,
         playerView: PlayerView,
         thumbnail: AppCompatImageView?,
+        loadingView: View?,
         listener: HnimExoPlayerListener
     ) {
         exoProvider.setupWith(
@@ -70,14 +73,17 @@ class ExoController(
             source = source,
             thumbSource = thumbSource,
             thumbnail = if (thumbnail != null) WeakReference(thumbnail) else null,
+            loadingView = if (loadingView != null) WeakReference(loadingView) else null,
             useController = useController,
             playerView = WeakReference(playerView),
+            isMoveToNext = isAutoMoveNext,
             listener = listener
         )
     }
 
     override fun play(position: Int) {
-        exoProvider.exoPlayers()[position]?.play()
+        Log.d("MTEST2", "play controll: ${exoProvider.exoPlayers()[position]}")
+        exoProvider.exoPlayers()[position]?.playWhenReady = true
     }
 
     override fun pause(position: Int) {
@@ -103,6 +109,14 @@ class ExoController(
 
     override fun setSaveState(saveState: Boolean) {
         this.isSaveState = saveState
+    }
+
+    fun setAutoMoveNext(isAutoMoveNext: Boolean) {
+        this.isAutoMoveNext = isAutoMoveNext
+    }
+
+    fun clear(){
+        exoProvider.clear()
     }
 
     interface HnimExoPlayerListener {

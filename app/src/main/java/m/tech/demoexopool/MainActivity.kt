@@ -1,42 +1,48 @@
 package m.tech.demoexopool
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.viewpager2.widget.ViewPager2
-import m.tech.demoexopool.exo.HnimExo
+import com.gg.gapo.video.hnim_exo.HnimExo
 
 class MainActivity : AppCompatActivity() {
+
+    var hnimExo: HnimExo? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val hnimExo = HnimExo.Builder(this)
+        hnimExo = HnimExo.Builder(this)
             .exoPool(5)
             .autoPlay(true) //auto play when video is buffered
             .isMuted(false) //volume on/off
+            .autoMoveNext(true) //auto move next video when video ended
             .isSaveState(false) //save position of video if its exo still in pool
             .lifeCycle(lifecycle) //handle pause, resume with lifecycle or you can do it manually
             .create()
 
         val vp2 = findViewById<ViewPager2>(R.id.vp2)
 
-        val mAdapter = VideoAdapter(hnimExo) {
+        val mAdapter = VideoAdapter(hnimExo!!) {
             vp2.currentItem = vp2.currentItem + 1
         }
 
         with(vp2) {
             mAdapter.submitList(getListVideo())
             adapter = mAdapter
-
-            hnimExo.attach(this)
+            offscreenPageLimit = 2
+            hnimExo!!.attach(this)
         }
 
         findViewById<Button>(R.id.btnNoti).setOnClickListener {
-//            startActivity(
-//                Intent(this, MainActivity2::class.java)
-//            )
-            mAdapter.notifyDataSetChanged()
+            startActivity(
+                Intent(this, MainActivity2::class.java)
+            )
+//            mAdapter.notifyDataSetChanged()
         }
 
     }
