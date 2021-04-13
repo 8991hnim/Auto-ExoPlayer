@@ -4,9 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.viewpager2.widget.ViewPager2
-import com.gg.gapo.video.hnim_exo.HnimExo
+import m.tech.demoexopool.hnim_exo.HnimExo
 
 class MainActivity : AppCompatActivity() {
 

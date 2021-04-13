@@ -1,4 +1,4 @@
-package com.gg.gapo.video.hnim_exo
+package m.tech.demoexopool.hnim_exo
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -46,6 +46,17 @@ fun Lifecycle.launchWhenStopped(action: () -> Boolean) {
     addObserver(object : LifecycleEventObserver {
         override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
             if (event == Lifecycle.Event.ON_STOP)
+                if(!action()){
+                    removeObserver(this)
+                }
+        }
+    })
+}
+
+fun Lifecycle.launchWhenDestroyed(action: () -> Boolean) {
+    addObserver(object : LifecycleEventObserver {
+        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+            if (event == Lifecycle.Event.ON_DESTROY)
                 if(!action()){
                     removeObserver(this)
                 }

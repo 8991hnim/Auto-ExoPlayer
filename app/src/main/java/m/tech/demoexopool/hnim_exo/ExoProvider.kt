@@ -1,4 +1,4 @@
-package com.gg.gapo.video.hnim_exo
+package m.tech.demoexopool.hnim_exo
 
 import android.content.Context
 import android.net.Uri
@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import com.bumptech.glide.Glide
+import com.gg.gapo.video.hnim_exo.BusEven
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.Player.*
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
@@ -45,14 +46,6 @@ constructor(
         Log.d(TAG, "clear: $exoPlayers")
     }
 
-    private val loadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(
-            DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
-            DefaultLoadControl.DEFAULT_MAX_BUFFER_MS,
-            1500,
-            DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-        ).build()
-
     //hàm prepare exo
     fun setupWith(
         position: Int,
@@ -69,7 +62,6 @@ constructor(
         context.get()?.let { context ->
             if (exoPlayers[position] == null) {
                 SimpleExoPlayer.Builder(context)
-                    .setLoadControl(loadControl)
                     .build().apply {
                         //gắn exo cho player view
                         playerView.get()?.player = this
@@ -129,7 +121,7 @@ constructor(
         exoPlayer.addListener(object : EventListener {
             override fun onPlayerError(error: ExoPlaybackException) {
                 super.onPlayerError(error)
-                Log.e(TAG, "onPlayerError: $position - ${error.message}")
+                Log.e(TAG, "onPlayerError: $position - $error - ${error.unexpectedException.toString()}")
                 if (position == currentPosition) {
                     loadingView?.get()?.visibility = View.GONE
                 }

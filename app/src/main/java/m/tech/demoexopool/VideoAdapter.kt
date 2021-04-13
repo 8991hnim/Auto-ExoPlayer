@@ -1,5 +1,6 @@
 package m.tech.demoexopool
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,8 +8,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.gg.gapo.video.hnim_exo.ExoController
-import com.gg.gapo.video.hnim_exo.HnimExo
+import m.tech.demoexopool.hnim_exo.ExoController
+import m.tech.demoexopool.hnim_exo.HnimExo
 import com.google.android.exoplayer2.ExoPlaybackException
 
 class VideoAdapter(
@@ -74,8 +75,8 @@ class VideoAdapter(
             }
         }
 
-
         fun bind(item: VideoItem) = with(itemView) {
+            Log.d("HnimExo", "bind: $adapterPosition")
             itemView.findViewById<TextView>(R.id.tvTest).text = item.name + " - " + adapterPosition
 
             itemView.findViewById<TextView>(R.id.btnMute).setOnClickListener {

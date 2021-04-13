@@ -1,9 +1,10 @@
-package com.gg.gapo.video.hnim_exo
+package m.tech.demoexopool.hnim_exo
 
 import android.content.Context
 import android.util.Log
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
+import com.gg.gapo.video.hnim_exo.HnimExoController
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ui.PlayerView
 import java.lang.ref.WeakReference
@@ -24,6 +25,10 @@ class ExoController(
 
     private val exoProvider: ExoProvider by lazy {
         ExoProvider(exoPool, WeakReference(context))
+    }
+
+    fun isPlayerExist(position: Int): Boolean{
+        return  exoProvider.exoPlayers()[position] != null
     }
 
     //hàm thật sự play video
