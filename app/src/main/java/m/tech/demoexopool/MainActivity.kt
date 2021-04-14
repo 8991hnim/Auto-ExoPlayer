@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         with(vp2) {
             mAdapter.submitList(getListVideo())
             adapter = mAdapter
-            offscreenPageLimit = 2
+//            offscreenPageLimit = 2 //unset this will get much more performance but load video is slower
             hnimExo!!.attach(this)
         }
 
