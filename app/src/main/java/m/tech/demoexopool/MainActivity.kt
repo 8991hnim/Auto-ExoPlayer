@@ -2,8 +2,10 @@ package m.tech.demoexopool
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.util.Pools
 import androidx.viewpager2.widget.ViewPager2
 import m.tech.demoexopool.hnim_exo.HnimExo
 
@@ -16,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         hnimExo = HnimExo.Builder(this)
-            .exoPool(5)
+            .exoPool(3)
             .autoPlay(true) //auto play when video is buffered
             .isMuted(false) //volume on/off
             .autoMoveNext(true) //auto move next video when video ended
@@ -33,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         with(vp2) {
             mAdapter.submitList(getListVideo())
             adapter = mAdapter
-//            offscreenPageLimit = 2 //unset this will get much more performance but load video is slower
+            offscreenPageLimit = 2 //unset this will get much more performance but load video is slower
             hnimExo!!.attach(this)
         }
 
@@ -44,7 +46,37 @@ class MainActivity : AppCompatActivity() {
 //            mAdapter.notifyDataSetChanged()
         }
 
+        testPool()
     }
+
+    val simplePool = Pools.SimplePool<Int>(5)
+    fun testPool() {
+        var i = simplePool.acquire()
+        Log.d(TAG, "testPool1: $i")
+        simplePool.release(1)
+        simplePool.release(2)
+        simplePool.release(3)
+        simplePool.release(4)
+        simplePool.release(5)
+        i = simplePool.acquire()
+        Log.d(TAG, "testPool2: $i")
+        simplePool.release(5)
+        simplePool.release(6)
+
+        i = simplePool.acquire()
+        Log.d(TAG, "testPool3: $i")
+        i = simplePool.acquire()
+        Log.d(TAG, "testPool4: $i")
+        i = simplePool.acquire()
+        Log.d(TAG, "testPool5: $i")
+        i = simplePool.acquire()
+        Log.d(TAG, "testPool6: $i")
+        i = simplePool.acquire()
+        Log.d(TAG, "testPool7: $i")
+
+    }
+
+    val TAG = "TestPool"
 
     private fun getListVideo() = listOf(
         VideoItem(

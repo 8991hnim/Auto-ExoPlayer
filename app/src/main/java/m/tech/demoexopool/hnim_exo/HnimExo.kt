@@ -3,6 +3,7 @@ package m.tech.demoexopool.hnim_exo
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.widget.ViewPager2
 import m.tech.demoexopool.hnim_exo.BusEven.HE_MOVE_TO_NEXT
@@ -43,6 +44,7 @@ class HnimExo(
                     handler.removeCallbacksAndMessages(null)
                     handler.post {
                         if (!controller.isPlayerExist(position)) {
+                            Log.d(TAG, "onPageSelected: rebind $position")
                             it.adapter?.notifyItemChanged(position)
                         }
                         controller.togglePlayer(position)
@@ -56,14 +58,16 @@ class HnimExo(
             lí do: khi vp2 scroll quá offscreenPageLimit view không đc bind lại (như trên)
             */
             if (it.offscreenPageLimit != ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT) {
-                /*
-                tạm thời set lại là 2 vì 2 đem lại performance tốt nhất:
-                1. Pool exo = 5
-                2. K tốn tài nguyên load trước nhiều video có thể k xem đến
+                /**
+                 *  tạm thời set lại là 2 vì để
+                 *  k tốn tài nguyên load trước nhiều video có thể k xem đến
                  */
                 it.offscreenPageLimit = 2
-                controller.setExoPool(it.offscreenPageLimit * 2 + 1)
+                var newPool = it.offscreenPageLimit * 2 + 1
+                if(newPool < 5) newPool = 5
+                controller.setExoPool(newPool)
             }
+
         }
     }
 
@@ -124,15 +128,14 @@ class HnimExo(
     }
 
     class Builder(context: Context) {
-        private var exoPool = DEFAULT_EXO_POOL
         private var lifeCycle: Lifecycle? = null
-        private val controller = ExoController(exoPool, context)
+        private val controller = ExoController(DEFAULT_EXO_POOL, context)
 
         fun exoPool(pool: Int): Builder {
-            if (pool < MIN_EXO_POOL) {
-                throw IllegalArgumentException("exoPool must be a number > 3")
+            if (pool < 1) {
+                throw IllegalArgumentException("exoPool must be a number > 0")
             }
-            this.exoPool = pool
+            controller.setExoPool(pool)
             return this
         }
 
@@ -169,7 +172,6 @@ class HnimExo(
 
     companion object {
         private const val DEFAULT_EXO_POOL = 5
-        private const val MIN_EXO_POOL = 4 //chưa rõ offscreenlimit default của vp2, cần check lại
         private const val TAG = "HnimExo::HnimExo"
     }
 

@@ -22,8 +22,8 @@ class ExoController(
     private var isSaveState: Boolean = false
     private var isAutoMoveNext: Boolean = false
 
-    private val exoProvider: ExoProvider by lazy {
-        ExoProvider(exoPool, WeakReference(context))
+    private val exoProvider: ExoProvider2 by lazy {
+        ExoProvider2(exoPool, WeakReference(context))
     }
 
     fun isPlayerExist(position: Int): Boolean{
@@ -52,6 +52,7 @@ class ExoController(
 
     //gọi nếu offscreenlimit của vp2 khác mặc định để set lại pool
     fun setExoPool(exoPool: Int) {
+        Log.d("MTEST", "called controoler:  $exoPool")
         exoProvider.setExoPool(exoPool)
     }
 
@@ -86,7 +87,6 @@ class ExoController(
     }
 
     override fun play(position: Int) {
-        Log.d("MTEST2", "play controll: ${exoProvider.exoPlayers()[position]}")
         exoProvider.exoPlayers()[position]?.playWhenReady = true
     }
 

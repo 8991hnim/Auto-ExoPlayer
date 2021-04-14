@@ -22,25 +22,20 @@ import java.lang.ref.WeakReference
 /**
  * @author: 89hnim
  * @since: 12/04/2021
- * Old class: Not use Pool
- * average time setupWith function: 80ms
+ * average time setupWith function: 20ms
  */
-class ExoProvider
+class ExoProvider2
 constructor(
     private var exoPool: Int,
     private val context: WeakReference<Context>
 ) {
-
-    init {
-        Log.d("MTEST", "called:  $exoPool")
-
-    }
 
     private val glide by lazy { context.get()?.let { Glide.with(it) } }
     private val exoPlayers = HashMap<Int, SimpleExoPlayer>()
     private var maxPosition = 0
     private var minPosition = Integer.MAX_VALUE
     private var currentPosition = 0
+    private val exoSimplePool = Pools.SimplePool<SimpleExoPlayer>(exoPool)
 
     fun clear() {
         exoPlayers.values.forEach {
@@ -51,6 +46,17 @@ constructor(
         currentPosition = 0
         exoPlayers.clear()
         Log.d(TAG, "clear: $exoPlayers")
+    }
+
+    private fun getSimpleExoplayer(context: Context): SimpleExoPlayer {
+        return exoSimplePool.acquire() ?: kotlin.run {
+            Log.d(TAG, "getSimpleExoplayer: creating new instance exo")
+            exoSimplePool.release(
+                SimpleExoPlayer.Builder(context)
+                    .build()
+            )
+            exoSimplePool.acquire()!!
+        }
     }
 
     //hàm prepare exo
@@ -67,40 +73,39 @@ constructor(
     ) {
         Log.d(TAG, "setupWith: $position - ${playerView.hashCode()}")
 
-        //test time: average ~80ms setup done.
+        //test time: average ~20ms setup done!!!
 //        val time = HnimExoUtils.executeTimeInMillis {
         context.get()?.let { context ->
             if (exoPlayers[position] == null) {
-                SimpleExoPlayer.Builder(context)
-                    .build().apply {
-                        //gắn exo cho player view
-                        playerView.get()?.player = this
-                        playerView.get()?.useController = useController
+                getSimpleExoplayer(context).apply {
+                    //gắn exo cho player view
+                    playerView.get()?.player = this
+                    playerView.get()?.useController = useController
 
-                        //load thumb
-                        thumbnail?.get()?.let { glide?.load(thumbSource)?.into(it) }
+                    //load thumb
+                    thumbnail?.get()?.let { glide?.load(thumbSource)?.into(it) }
 
-                        //callback
-                        registerPlayerListener(
-                            position = position,
-                            exoPlayer = this,
-                            thumbnail = thumbnail,
-                            loadingView = loadingView,
-                            isMoveToNext = isMoveToNext,
-                            listener = listener
-                        )
+                    //callback
+                    registerPlayerListener(
+                        position = position,
+                        exoPlayer = this,
+                        thumbnail = thumbnail,
+                        loadingView = loadingView,
+                        isMoveToNext = isMoveToNext,
+                        listener = listener
+                    )
 
-                        //tạo media source
-                        val mediaSource = buildMediaSource(Uri.parse(source))
-                        if (mediaSource != null) {
-                            this.setMediaSource(mediaSource)
-                            playWhenReady = position == this@ExoProvider.currentPosition
-                            prepare()
+                    //tạo media source
+                    val mediaSource = buildMediaSource(Uri.parse(source))
+                    if (mediaSource != null) {
+                        this.setMediaSource(mediaSource)
+                        playWhenReady = position == this@ExoProvider2.currentPosition
+                        prepare()
 
-                            //add vào pool
-                            addToExoPool(position, this)
-                        }
+                        //add vào pool
+                        addToExoPool(position, this)
                     }
+                }
             } else {
                 //load lại thumb trong trường hợp view bị recycled
                 thumbnail?.get()?.let { glide?.load(thumbSource)?.into(it) }
@@ -118,10 +123,9 @@ constructor(
                 )
             }
         }
-//        }
+//    }
 
 //        Log.d(TAG, "setupWith: Done after $time")
-
     }
 
     private fun registerPlayerListener(
@@ -212,8 +216,13 @@ constructor(
     }
 
     private fun removeItemInPool(tagPosition: Int) {
+        Log.d(
+            TAG,
+            "removeItemInPool: before: diem hien tai $currentPosition - diem moi $tagPosition - ${exoPlayers.keys}"
+        )
         findFurthestPosition(tagPosition).let { furthestPos ->
-            exoPlayers[furthestPos]?.release()
+            exoPlayers[furthestPos]?.stop(true)
+            exoPlayers[furthestPos]?.let { exoSimplePool.release(it) }
             exoPlayers.remove(furthestPos)
         }
     }
