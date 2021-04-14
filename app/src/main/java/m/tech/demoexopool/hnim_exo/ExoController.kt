@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
-import com.gg.gapo.video.hnim_exo.HnimExoController
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ui.PlayerView
 import java.lang.ref.WeakReference
@@ -51,7 +50,7 @@ class ExoController(
         }
     }
 
-    //sẽ được gọi nếu offscreenlimit của vp2 khác mặc định
+    //gọi nếu offscreenlimit của vp2 khác mặc định để set lại pool
     fun setExoPool(exoPool: Int) {
         exoProvider.setExoPool(exoPool)
     }

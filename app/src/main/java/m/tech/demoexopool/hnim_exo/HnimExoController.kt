@@ -1,4 +1,4 @@
-package com.gg.gapo.video.hnim_exo
+package m.tech.demoexopool.hnim_exo
 
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageView

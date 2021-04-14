@@ -5,8 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.widget.ViewPager2
-import com.gg.gapo.video.hnim_exo.BusEven.HE_MOVE_TO_NEXT
-import com.gg.gapo.video.hnim_exo.HnimExoController
+import m.tech.demoexopool.hnim_exo.BusEven.HE_MOVE_TO_NEXT
 import org.simple.eventbus.EventBus
 import org.simple.eventbus.Subscriber
 import java.lang.ref.WeakReference

@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import com.bumptech.glide.Glide
-import com.gg.gapo.video.hnim_exo.BusEven
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.Player.*
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
@@ -59,55 +58,62 @@ constructor(
         listener: ExoController.HnimExoPlayerListener
     ) {
         Log.d(TAG, "setupWith: $position - ${playerView.hashCode()}")
-        context.get()?.let { context ->
-            if (exoPlayers[position] == null) {
-                SimpleExoPlayer.Builder(context)
-                    .build().apply {
-                        //gắn exo cho player view
-                        playerView.get()?.player = this
-                        playerView.get()?.useController = useController
 
-                        //load thumb
-                        thumbnail?.get()?.let { glide?.load(thumbSource)?.into(it) }
+        //test time: average ~80ms setup done.
+//        val time = HnimExoUtils.executeTimeInMillis {
+            context.get()?.let { context ->
+                if (exoPlayers[position] == null) {
+                    SimpleExoPlayer.Builder(context)
+                        .build().apply {
+                            //gắn exo cho player view
+                            playerView.get()?.player = this
+                            playerView.get()?.useController = useController
 
-                        //callback
-                        registerPlayerListener(
-                            position = position,
-                            exoPlayer = this,
-                            thumbnail = thumbnail,
-                            loadingView = loadingView,
-                            isMoveToNext = isMoveToNext,
-                            listener = listener
-                        )
+                            //load thumb
+                            thumbnail?.get()?.let { glide?.load(thumbSource)?.into(it) }
 
-                        //tạo media source
-                        val mediaSource = buildMediaSource(Uri.parse(source))
-                        if (mediaSource != null) {
-                            this.setMediaSource(mediaSource)
-                            playWhenReady = position == this@ExoProvider.currentPosition
-                            prepare()
+                            //callback
+                            registerPlayerListener(
+                                position = position,
+                                exoPlayer = this,
+                                thumbnail = thumbnail,
+                                loadingView = loadingView,
+                                isMoveToNext = isMoveToNext,
+                                listener = listener
+                            )
 
-                            //add vào pool
-                            addToExoPool(position, this)
+                            //tạo media source
+                            val mediaSource = buildMediaSource(Uri.parse(source))
+                            if (mediaSource != null) {
+                                this.setMediaSource(mediaSource)
+                                playWhenReady = position == this@ExoProvider.currentPosition
+                                prepare()
+
+                                //add vào pool
+                                addToExoPool(position, this)
+                            }
                         }
-                    }
-            } else {
-                //load lại thumb trong trường hợp view bị recycled
-                thumbnail?.get()?.let { glide?.load(thumbSource)?.into(it) }
-                //player view cần được gắn lại exo trường hợp view bị recycled
-                playerView.get()?.player = exoPlayers[position]
-                playerView.get()?.hideController()
+                } else {
+                    //load lại thumb trong trường hợp view bị recycled
+                    thumbnail?.get()?.let { glide?.load(thumbSource)?.into(it) }
+                    //player view cần được gắn lại exo trường hợp view bị recycled
+                    playerView.get()?.player = exoPlayers[position]
+                    playerView.get()?.hideController()
 
-                registerPlayerListener(
-                    position = position,
-                    exoPlayer = exoPlayers[position]!!,
-                    thumbnail = thumbnail,
-                    loadingView = loadingView,
-                    isMoveToNext = isMoveToNext,
-                    listener = listener
-                )
+                    registerPlayerListener(
+                        position = position,
+                        exoPlayer = exoPlayers[position]!!,
+                        thumbnail = thumbnail,
+                        loadingView = loadingView,
+                        isMoveToNext = isMoveToNext,
+                        listener = listener
+                    )
+                }
             }
-        }
+//        }
+
+//        Log.d(TAG, "setupWith: Done after $time")
+
     }
 
     private fun registerPlayerListener(
@@ -121,7 +127,10 @@ constructor(
         exoPlayer.addListener(object : EventListener {
             override fun onPlayerError(error: ExoPlaybackException) {
                 super.onPlayerError(error)
-                Log.e(TAG, "onPlayerError: $position - $error - ${error.unexpectedException.toString()}")
+                Log.e(
+                    TAG,
+                    "onPlayerError: $position - $error - ${error.unexpectedException.toString()}"
+                )
                 if (position == currentPosition) {
                     loadingView?.get()?.visibility = View.GONE
                 }
@@ -159,6 +168,8 @@ constructor(
                 listener.onPlayingChanged(isPlaying)
                 if (isPlaying && currentPosition == position)
                     thumbnail?.get()?.visibility = View.GONE
+                else if (!isPlaying && currentPosition != position)
+                    thumbnail?.get()?.visibility = View.VISIBLE
             }
         })
     }
@@ -193,12 +204,19 @@ constructor(
     }
 
     private fun removeItemInPool(tagPosition: Int) {
-        Log.d(TAG, "removeItemInPool: before: diem hien tai $currentPosition - diem moi $tagPosition - ${exoPlayers.keys}")
+        var start = System.currentTimeMillis()
+        Log.d(
+            TAG,
+            "removeItemInPool: before: diem hien tai $currentPosition - diem moi $tagPosition - ${exoPlayers.keys}"
+        )
         findFurthestPosition(tagPosition).let { furthestPos ->
             exoPlayers[furthestPos]?.release()
             exoPlayers.remove(furthestPos)
 
-            Log.d(TAG, "removeItemInPool: diem hien tai $currentPosition - diem xa nhat $furthestPos")
+            Log.d(
+                TAG,
+                "removeItemInPool: diem hien tai $currentPosition - diem xa nhat $furthestPos - after ${System.currentTimeMillis() - start}"
+            )
         }
     }
 
@@ -210,7 +228,7 @@ constructor(
 
         Log.d(TAG, "findFurthestPosition: $currentPosition - $minPosition - $maxPosition")
 
-        return if (tagPosition  >= centerValue) {
+        return if (tagPosition >= centerValue) {
             //vị trí xa nhất là vị trí nhỏ nhất
             minPosition++
             minValue
