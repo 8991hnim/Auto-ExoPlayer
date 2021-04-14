@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import m.tech.demoexopool.hnim_exo.ExoController
 import m.tech.demoexopool.hnim_exo.HnimExo
 import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.ui.PlayerView
 
 class VideoAdapter(
     private val hnimExo: HnimExo,
@@ -56,14 +57,19 @@ class VideoAdapter(
         private val listener = object : ExoController.HnimExoPlayerListener {
             override fun onBuffering() {
                 super.onBuffering()
+                itemView.findViewById<PlayerView>(R.id.playerView).useController = false
             }
 
             override fun onReady() {
                 super.onReady()
+                itemView.findViewById<PlayerView>(R.id.playerView).useController = true
+                itemView.findViewById<PlayerView>(R.id.playerView).hideController()
             }
 
             override fun onEnded() {
                 super.onEnded()
+                itemView.findViewById<PlayerView>(R.id.playerView).useController = false
+                itemView.findViewById<PlayerView>(R.id.playerView).hideController()
             }
 
             override fun onPlayingChanged(isPlaying: Boolean) {

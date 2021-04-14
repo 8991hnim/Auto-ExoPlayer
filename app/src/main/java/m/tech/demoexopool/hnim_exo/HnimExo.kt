@@ -1,6 +1,8 @@
 package m.tech.demoexopool.hnim_exo
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.widget.ViewPager2
 import com.gg.gapo.video.hnim_exo.BusEven.HE_MOVE_TO_NEXT
@@ -19,6 +21,7 @@ class HnimExo(
 ) {
 
     private var vp2: WeakReference<ViewPager2>? = null
+    private val handler = Handler(Looper.getMainLooper())
 
     fun getExoController(): HnimExoController = controller
 
@@ -29,9 +32,8 @@ class HnimExo(
                 override fun onPageSelected(position: Int) {
                     super.onPageSelected(position)
                     /*
-                    setOffscreenPageLimit 2 vấn đề:
-                    1. Tính sai video xa nhất để xóa khỏi exo pool
-                    2. Dù kéo hết offscreenPageLimit, ví dụ: offscreenPageLimit = 2.
+                    setOffscreenPageLimit có vấn đề:
+                    Dù kéo hết offscreenPageLimit, ví dụ: offscreenPageLimit = 2.
                     Scroll từ b1 -> b2 -> b3 -> b4 -> b5: Vị trí 0 k đc bind lại làm k setup lai đc player
                     (trước đó player ở 0 đã bị xóa khi kéo đến vị trí thứ 3)
                     0       1         2         3          4         5
@@ -39,9 +41,14 @@ class HnimExo(
         b7[ko đc bind lại]  b6       b5
                     --> tạm thời check nếu scroll đến page mà tại page đó player chưa đc init thì init
                      */
-                    if (!controller.isPlayerExist(position))
-                        it.adapter?.notifyItemChanged(position)
-                    controller.togglePlayer(position)
+                    handler.removeCallbacksAndMessages(null)
+                    handler.post {
+                        if (!controller.isPlayerExist(position)) {
+                            it.adapter?.notifyItemChanged(position)
+                        }
+                        controller.togglePlayer(position)
+                    }
+
                 }
             })
 

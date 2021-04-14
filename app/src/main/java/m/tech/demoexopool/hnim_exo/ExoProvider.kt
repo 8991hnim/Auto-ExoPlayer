@@ -176,7 +176,6 @@ constructor(
     //add exo player vào pool, nếu pool đầy xóa phần tử xa nhất
     private fun addToExoPool(tagPosition: Int, player: SimpleExoPlayer) {
         Log.d(TAG, "addToExoPool: position $tagPosition")
-        exoPlayers[tagPosition] = player
 
         if (tagPosition > maxPosition)
             maxPosition = tagPosition
@@ -184,30 +183,34 @@ constructor(
             minPosition = tagPosition
 
         //nếu pool đã max -> xóa phần tử xa nhất
-        if (exoPlayers.size > exoPool) {
-            removeItemInPool()
+        if (exoPlayers.size >= exoPool) {
+            removeItemInPool(tagPosition)
         }
+
+        exoPlayers[tagPosition] = player
+
+        Log.d(TAG, "list left: ${exoPlayers.keys}")
     }
 
-    private fun removeItemInPool() {
-        Log.d(TAG, "removeItemInPool: before: diem hien tai $currentPosition - ${exoPlayers.keys}")
-        findFurthestPosition().let { furthestPos ->
+    private fun removeItemInPool(tagPosition: Int) {
+        Log.d(TAG, "removeItemInPool: before: diem hien tai $currentPosition - diem moi $tagPosition - ${exoPlayers.keys}")
+        findFurthestPosition(tagPosition).let { furthestPos ->
             exoPlayers[furthestPos]?.release()
             exoPlayers.remove(furthestPos)
 
-            Log.d(TAG, "removeItemInPool: diem hien tai $currentPosition - diem xa nhat $furthestPos - list left: ${exoPlayers.keys}")
+            Log.d(TAG, "removeItemInPool: diem hien tai $currentPosition - diem xa nhat $furthestPos")
         }
     }
 
     //tìm vị trí xa nhất so với vị trí hiện tại
-    private fun findFurthestPosition(): Int {
+    private fun findFurthestPosition(tagPosition: Int): Int {
         val minValue = minPosition
         val maxValue = maxPosition
         val centerValue = (maxValue + minValue) / 2f
 
         Log.d(TAG, "findFurthestPosition: $currentPosition - $minPosition - $maxPosition")
 
-        return if (currentPosition  >= centerValue) {
+        return if (tagPosition  >= centerValue) {
             //vị trí xa nhất là vị trí nhỏ nhất
             minPosition++
             minValue
