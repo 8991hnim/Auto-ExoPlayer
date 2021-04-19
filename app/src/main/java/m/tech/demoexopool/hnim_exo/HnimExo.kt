@@ -68,7 +68,7 @@ class HnimExo(
 
     fun clear(isDestroy: Boolean) {
         if (isDestroy) {
-            SimpleCacheFactory.clearCache()
+//            SimpleCacheFactory.clearCache()
             vp2?.unregisterOnPageChangeCallback(onPageChange)
             vp2 = null
         }
@@ -100,7 +100,7 @@ class HnimExo(
         }
     }
 
-    class Builder(context: Context) {
+    class Builder(private val context: Context) {
         private var lifeCycle: Lifecycle? = null
         private val controller = ExoController(context)
 
@@ -130,6 +130,7 @@ class HnimExo(
         }
 
         fun create(): HnimExo {
+            SimpleCacheFactory.init(context)
             return HnimExo(controller, lifeCycle)
         }
 

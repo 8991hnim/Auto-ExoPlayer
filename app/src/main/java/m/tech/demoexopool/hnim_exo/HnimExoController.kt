@@ -11,6 +11,7 @@ interface HnimExoController {
         position: Int,
         source: String,
         preloadSource: Array<String?>?,
+        preloadImageSource: Array<String?>?,
         thumbSource: String?,
         thumbnail: AppCompatImageView?,
         loadingView: View?,

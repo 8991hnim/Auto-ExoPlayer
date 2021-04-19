@@ -77,6 +77,7 @@ constructor(
         position: Int,
         source: String,
         preloadSource: Array<String?>?,
+        preloadImageSource: Array<String?>?,
         thumbSource: String?,
         thumbnail: WeakReference<AppCompatImageView>?,
         loadingView: WeakReference<View>?,
@@ -106,6 +107,8 @@ constructor(
                 SimpleCacheFactory.preloadVideo(context, s)
             }
         }
+
+        SimpleCacheFactory.preloadImages(context, preloadImageSource)
     }
 
     private fun registerPlayerListener(
@@ -162,6 +165,7 @@ constructor(
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
                 listener.onPlayingChanged(isPlaying)
+                Log.d(TAG, "onIsPlayingChanged: $currentPosition $position")
                 if (isPlaying && currentPosition == position)
                     thumbnail?.get()?.visibility = View.GONE
                 else if (!isPlaying && currentPosition != position)

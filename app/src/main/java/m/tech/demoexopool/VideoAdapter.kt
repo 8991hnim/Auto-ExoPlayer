@@ -143,6 +143,23 @@ class VideoAdapter(
                         null
                     }
                 ),
+                preloadImageSource = arrayOf(
+                    try {
+                        currentList[adapterPosition + 1].thumb
+                    } catch (e: Exception) {
+                        null
+                    },
+                    try {
+                        currentList[adapterPosition + 2].thumb
+                    } catch (e: Exception) {
+                        null
+                    },
+                    try {
+                        currentList[adapterPosition + 3].thumb
+                    } catch (e: Exception) {
+                        null
+                    }
+                ),
                 thumbnail = itemView.findViewById(R.id.thumbnail),
                 thumbSource = item.thumb,
                 loadingView = null,
