@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         hnimExo = HnimExo.Builder(this)
-            .exoPool(3)
+            .exoPool(4)
             .autoPlay(true) //auto play when video is buffered
             .isMuted(false) //volume on/off
             .autoMoveNext(true) //auto move next video when video ended
@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         with(vp2) {
             mAdapter.submitList(getListVideo())
             adapter = mAdapter
-            offscreenPageLimit = 2 //unset this will get much more performance but load video is slower
+//            offscreenPageLimit = 1
             hnimExo!!.attach(this)
         }
 

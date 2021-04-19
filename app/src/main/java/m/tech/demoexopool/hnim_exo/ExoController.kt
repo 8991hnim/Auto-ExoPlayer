@@ -1,4 +1,4 @@
-package m.tech.demoexopool.hnim_exo
+package com.gg.gapo.video.hnim_exo
 
 import android.content.Context
 import android.util.Log
@@ -6,6 +6,8 @@ import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ui.PlayerView
+import m.tech.demoexopool.hnim_exo.ExoProvider2
+import m.tech.demoexopool.hnim_exo.HnimExoController
 import java.lang.ref.WeakReference
 
 /**
@@ -26,8 +28,8 @@ class ExoController(
         ExoProvider2(exoPool, WeakReference(context))
     }
 
-    fun isPlayerExist(position: Int): Boolean{
-        return  exoProvider.exoPlayers()[position] != null
+    fun isPlayerExist(position: Int): Boolean {
+        return exoProvider.exoPlayers()[position] != null
     }
 
     //hàm thật sự play video
@@ -50,9 +52,8 @@ class ExoController(
         }
     }
 
-    //gọi nếu offscreenlimit của vp2 khác mặc định để set lại pool
+    //sẽ được gọi nếu offscreenlimit của vp2 khác mặc định
     fun setExoPool(exoPool: Int) {
-        Log.d("MTEST", "called controoler:  $exoPool")
         exoProvider.setExoPool(exoPool)
     }
 
@@ -87,6 +88,7 @@ class ExoController(
     }
 
     override fun play(position: Int) {
+        Log.d("MTEST2", "play controll: ${exoProvider.exoPlayers()[position]}")
         exoProvider.exoPlayers()[position]?.playWhenReady = true
     }
 
@@ -119,8 +121,8 @@ class ExoController(
         this.isAutoMoveNext = isAutoMoveNext
     }
 
-    fun clear(){
-        exoProvider.clear()
+    fun clear(isDestroy: Boolean) {
+        exoProvider.clear(isDestroy)
     }
 
     interface HnimExoPlayerListener {

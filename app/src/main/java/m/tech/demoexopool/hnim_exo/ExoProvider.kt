@@ -5,8 +5,8 @@ import android.net.Uri
 import android.util.Log
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
-import androidx.core.util.Pools
 import com.bumptech.glide.Glide
+import com.gg.gapo.video.hnim_exo.ExoController
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.Player.*
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory

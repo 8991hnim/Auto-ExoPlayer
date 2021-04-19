@@ -6,26 +6,35 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import m.tech.demoexopool.hnim_exo.ExoController
-import m.tech.demoexopool.hnim_exo.HnimExo
+import com.gg.gapo.video.hnim_exo.ExoController
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ui.PlayerView
+import m.tech.demoexopool.hnim_exo.HnimExo
 
 class VideoAdapter(
     private val hnimExo: HnimExo,
     private val onMoveToNext: () -> Unit
 ) : ListAdapter<VideoItem, RecyclerView.ViewHolder>(ItemCallback()) {
 
+    init {
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int): Long {
+        return currentList[position].hashCode().toLong()
+    }
+
     private class ItemCallback : DiffUtil.ItemCallback<VideoItem>() {
 
         override fun areItemsTheSame(oldItem: VideoItem, newItem: VideoItem): Boolean {
-            return false
+            return oldItem.name == newItem.name
         }
 
         override fun areContentsTheSame(oldItem: VideoItem, newItem: VideoItem): Boolean {
-            return false
+            return oldItem == newItem
         }
     }
 
@@ -39,6 +48,12 @@ class VideoAdapter(
         )
     }
 
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        val layoutManager = recyclerView.layoutManager
+        (layoutManager as LinearLayoutManager)?.recycleChildrenOnDetach = true
+    }
+
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
             is VideoHolder -> {
@@ -48,6 +63,11 @@ class VideoAdapter(
     }
 
     var isMuted = false
+
+    override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
+        super.onViewRecycled(holder)
+        Log.d("BindAdapter", "onViewRecycled: called")
+    }
 
     inner class VideoHolder
     constructor(
@@ -82,7 +102,7 @@ class VideoAdapter(
         }
 
         fun bind(item: VideoItem) = with(itemView) {
-            Log.d("HnimExo", "bind: $adapterPosition")
+            Log.d("BindAdapter", "bind: $adapterPosition")
             itemView.findViewById<TextView>(R.id.tvTest).text = item.name + " - " + adapterPosition
 
             itemView.findViewById<TextView>(R.id.btnMute).setOnClickListener {
@@ -107,7 +127,7 @@ class VideoAdapter(
             hnimExo.getExoController().setupWith(
                 position = adapterPosition,
                 source = item.source,
-                thumbnail =  itemView.findViewById(R.id.thumbnail),
+                thumbnail = itemView.findViewById(R.id.thumbnail),
                 thumbSource = item.thumb,
                 loadingView = null,
                 useController = true,

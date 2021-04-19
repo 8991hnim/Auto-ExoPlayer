@@ -6,7 +6,9 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.util.Pools
+import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
+import com.gg.gapo.video.hnim_exo.ExoController
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.Player.*
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
@@ -22,7 +24,6 @@ import java.lang.ref.WeakReference
 /**
  * @author: 89hnim
  * @since: 12/04/2021
- * average time setupWith function: 20ms
  */
 class ExoProvider2
 constructor(
@@ -35,11 +36,17 @@ constructor(
     private var maxPosition = 0
     private var minPosition = Integer.MAX_VALUE
     private var currentPosition = 0
-    private val exoSimplePool = Pools.SimplePool<SimpleExoPlayer>(exoPool)
+    private var exoSimplePool = Pools.SimplePool<SimpleExoPlayer>(exoPool)
 
-    fun clear() {
+    fun clear(isDestroy: Boolean) {
         exoPlayers.values.forEach {
-            it.release()
+            if (isDestroy)
+                it.release()
+            else {
+                //t.h refresh feeds: k cần release hết instance exo, chỉ reset
+                it.stop(true)
+                exoSimplePool.release(it)
+            }
         }
         maxPosition = 0
         minPosition = Integer.MAX_VALUE
@@ -73,59 +80,60 @@ constructor(
     ) {
         Log.d(TAG, "setupWith: $position - ${playerView.hashCode()}")
 
-        //test time: average ~20ms setup done!!!
-//        val time = HnimExoUtils.executeTimeInMillis {
-        context.get()?.let { context ->
-            if (exoPlayers[position] == null) {
-                getSimpleExoplayer(context).apply {
-                    //gắn exo cho player view
-                    playerView.get()?.player = this
-                    playerView.get()?.useController = useController
+        //test time: average ~80ms setup done.
+        val time = HnimExoUtils.executeTimeInMillis {
+            context.get()?.let { context ->
+                if (exoPlayers[position] == null) {
+                    getSimpleExoplayer(context).apply {
+                        //gắn exo cho player view
+                        playerView.get()?.player = this
+                        playerView.get()?.useController = useController
 
-                    //load thumb
+                        //load thumb
+                        thumbnail?.get()?.let { glide?.load(thumbSource)?.into(it) }
+
+                        //callback
+                        registerPlayerListener(
+                            position = position,
+                            exoPlayer = this,
+                            thumbnail = thumbnail,
+                            loadingView = loadingView,
+                            isMoveToNext = isMoveToNext,
+                            listener = listener
+                        )
+
+                        //tạo media source
+                        val mediaSource = buildMediaSource(Uri.parse(source))
+                        if (mediaSource != null) {
+                            this.setMediaSource(mediaSource)
+                            playWhenReady = position == this@ExoProvider2.currentPosition
+                            prepare()
+
+                            //add vào pool
+                            addToExoPool(position, this)
+                        }
+                    }
+                } else {
+                    //load lại thumb trong trường hợp view bị recycled
                     thumbnail?.get()?.let { glide?.load(thumbSource)?.into(it) }
+                    //player view cần được gắn lại exo trường hợp view bị recycled
+                    playerView.get()?.player = exoPlayers[position]
+                    playerView.get()?.hideController()
 
-                    //callback
                     registerPlayerListener(
                         position = position,
-                        exoPlayer = this,
+                        exoPlayer = exoPlayers[position]!!,
                         thumbnail = thumbnail,
                         loadingView = loadingView,
                         isMoveToNext = isMoveToNext,
                         listener = listener
                     )
-
-                    //tạo media source
-                    val mediaSource = buildMediaSource(Uri.parse(source))
-                    if (mediaSource != null) {
-                        this.setMediaSource(mediaSource)
-                        playWhenReady = position == this@ExoProvider2.currentPosition
-                        prepare()
-
-                        //add vào pool
-                        addToExoPool(position, this)
-                    }
                 }
-            } else {
-                //load lại thumb trong trường hợp view bị recycled
-                thumbnail?.get()?.let { glide?.load(thumbSource)?.into(it) }
-                //player view cần được gắn lại exo trường hợp view bị recycled
-                playerView.get()?.player = exoPlayers[position]
-                playerView.get()?.hideController()
-
-                registerPlayerListener(
-                    position = position,
-                    exoPlayer = exoPlayers[position]!!,
-                    thumbnail = thumbnail,
-                    loadingView = loadingView,
-                    isMoveToNext = isMoveToNext,
-                    listener = listener
-                )
             }
         }
-//    }
 
-//        Log.d(TAG, "setupWith: Done after $time")
+        Log.d(TAG, "setupWith: Done after $time")
+
     }
 
     private fun registerPlayerListener(
@@ -137,16 +145,19 @@ constructor(
         listener: ExoController.HnimExoPlayerListener
     ) {
         exoPlayer.addListener(object : EventListener {
+
             override fun onPlayerError(error: ExoPlaybackException) {
                 super.onPlayerError(error)
-                Log.e(
-                    TAG,
-                    "onPlayerError: $position - $error - ${error.unexpectedException.toString()}"
-                )
                 if (position == currentPosition) {
                     loadingView?.get()?.visibility = View.GONE
                 }
                 listener.onError(error)
+            }
+
+            override fun onSeekProcessed() {
+                if (currentPosition == position) {
+                    thumbnail?.get()?.isVisible = false
+                }
             }
 
             override fun onPlaybackStateChanged(state: Int) {
@@ -188,6 +199,7 @@ constructor(
 
     fun setExoPool(exoPool: Int) {
         this.exoPool = exoPool
+        exoSimplePool = Pools.SimplePool<SimpleExoPlayer>(exoPool)
     }
 
     fun exoPlayers() = exoPlayers
