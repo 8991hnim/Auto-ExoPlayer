@@ -1,5 +1,6 @@
 package m.tech.demoexopool
 
+import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +16,7 @@ import com.google.android.exoplayer2.ui.PlayerView
 import m.tech.demoexopool.hnim_exo.HnimExo
 
 class VideoAdapter(
+    private val context: Context,
     private val hnimExo: HnimExo,
     private val onMoveToNext: () -> Unit
 ) : ListAdapter<VideoItem, RecyclerView.ViewHolder>(ItemCallback()) {
@@ -101,9 +103,11 @@ class VideoAdapter(
             }
         }
 
+        fun getPlayerView(): PlayerView? = itemView.findViewById(R.id.playerView)
+
         fun bind(item: VideoItem) = with(itemView) {
             Log.d("BindAdapter", "bind: $adapterPosition")
-            itemView.findViewById<TextView>(R.id.tvTest).text = item.name + " - " + adapterPosition
+            itemView.findViewById<TextView>(R.id.tvTest).text = item.source + " - " + adapterPosition
 
             itemView.findViewById<TextView>(R.id.btnMute).setOnClickListener {
                 isMuted = !isMuted
@@ -127,15 +131,26 @@ class VideoAdapter(
             hnimExo.getExoController().setupWith(
                 position = adapterPosition,
                 source = item.source,
+                preloadSource = arrayOf(
+                    try {
+                        currentList[adapterPosition + 1].source
+                    } catch (e: Exception) {
+                        null
+                    },
+                    try {
+                        currentList[adapterPosition + 2].source
+                    } catch (e: Exception) {
+                        null
+                    }
+                ),
                 thumbnail = itemView.findViewById(R.id.thumbnail),
                 thumbSource = item.thumb,
                 loadingView = null,
-                useController = true,
-                playerView = itemView.findViewById(R.id.playerView),
                 listener = listener
             )
 
         }
+
     }
 
     override fun onBindViewHolder(

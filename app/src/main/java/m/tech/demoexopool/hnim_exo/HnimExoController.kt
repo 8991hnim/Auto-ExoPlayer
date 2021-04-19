@@ -10,9 +10,8 @@ interface HnimExoController {
     fun setupWith(
         position: Int,
         source: String,
+        preloadSource: Array<String?>?,
         thumbSource: String?,
-        useController: Boolean,
-        playerView: PlayerView,
         thumbnail: AppCompatImageView?,
         loadingView: View?,
         listener: ExoController.HnimExoPlayerListener

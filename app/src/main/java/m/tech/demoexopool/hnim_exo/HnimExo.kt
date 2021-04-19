@@ -1,12 +1,12 @@
 package m.tech.demoexopool.hnim_exo
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
+import androidx.core.view.get
 import androidx.lifecycle.Lifecycle
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.gg.gapo.video.hnim_exo.ExoController
+import m.tech.demoexopool.VideoAdapter
 import m.tech.demoexopool.hnim_exo.BusEven.HE_MOVE_TO_NEXT
 import org.simple.eventbus.EventBus
 import org.simple.eventbus.Subscriber
@@ -21,52 +21,22 @@ class HnimExo(
 ) {
 
     private var vp2: ViewPager2? = null
-    private val handler = Handler(Looper.getMainLooper())
 
     fun getExoController(): HnimExoController = controller
 
     private val onPageChange = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
             super.onPageSelected(position)
-            /**
-            setOffscreenPageLimit có vấn đề:
-            Dù kéo hết offscreenPageLimit, ví dụ: offscreenPageLimit = 2.
-            Scroll từ b1 -> b2 -> b3 -> b4 -> b5: Vị trí 0 k đc bind lại làm k setup lai đc player
-            (trước đó player ở 0 đã bị xóa khi kéo đến vị trí thứ 3)
-            0       1         2         3          4         5
-            b1      b2       b3         b4
-            b7[ko đc bind lại]  b6       b5
-            --> tạm thời check nếu scroll đến page mà tại page đó player chưa đc init thì init
-             */
-            handler.removeCallbacksAndMessages(null)
-            handler.post {
-                if (!controller.isPlayerExist(position)) {
-                    Log.d(TAG, "onPageSelected: Rebinding $position")
-                    vp2?.adapter?.notifyItemChanged(position)
-                }
-                controller.togglePlayer(position)
-            }
+            controller.togglePlayer(
+                position,
+                ((vp2?.get(0) as RecyclerView).findViewHolderForAdapterPosition(position) as VideoAdapter.VideoHolder).getPlayerView()
+            )
         }
     }
 
     fun attach(vp2: ViewPager2) {
         this.vp2 = vp2
-        this.vp2?.let {
-            it.registerOnPageChangeCallback(onPageChange)
-
-            /**
-             * cần có công thức tính exo pool từ offscreenPageLimit chuẩn hơn
-             *  lí do: khi vp2 scroll quá offscreenPageLimit view không đc bind lại (như trên)
-             *  test: scroll đến item 4-> 6 với offscreenpagelimit = 1 view sẽ đc recycled
-             */
-            if (it.offscreenPageLimit != ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT) {
-                it.offscreenPageLimit = 1
-                controller.setExoPool(4)
-//                val newPool = it.offscreenPageLimit * 2 + 1
-//                controller.setExoPool(newPool)
-            }
-
-        }
+        this.vp2?.registerOnPageChangeCallback(onPageChange)
     }
 
     init {
@@ -98,6 +68,7 @@ class HnimExo(
 
     fun clear(isDestroy: Boolean) {
         if (isDestroy) {
+            SimpleCacheFactory.clearCache()
             vp2?.unregisterOnPageChangeCallback(onPageChange)
             vp2 = null
         }
@@ -130,17 +101,8 @@ class HnimExo(
     }
 
     class Builder(context: Context) {
-        private var exoPool = DEFAULT_EXO_POOL
         private var lifeCycle: Lifecycle? = null
-        private val controller = ExoController(exoPool, context)
-
-        fun exoPool(pool: Int): Builder {
-            if (pool < 1) {
-                throw IllegalArgumentException("exoPool must be a number > 0")
-            }
-            controller.setExoPool(pool)
-            return this
-        }
+        private val controller = ExoController(context)
 
         fun lifeCycle(lifeCycle: Lifecycle): Builder {
             this.lifeCycle = lifeCycle
@@ -174,7 +136,6 @@ class HnimExo(
     }
 
     companion object {
-        private const val DEFAULT_EXO_POOL = 5
         private const val TAG = "HnimExo::HnimExo"
     }
 

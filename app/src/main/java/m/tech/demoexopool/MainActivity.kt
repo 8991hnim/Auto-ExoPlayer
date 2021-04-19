@@ -6,6 +6,8 @@ import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.util.Pools
+import androidx.core.view.get
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import m.tech.demoexopool.hnim_exo.HnimExo
 
@@ -17,8 +19,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        hnimExo = HnimExo.Builder(this)
-            .exoPool(4)
+        hnimExo = HnimExo.Builder(applicationContext)
             .autoPlay(true) //auto play when video is buffered
             .isMuted(false) //volume on/off
             .autoMoveNext(true) //auto move next video when video ended
@@ -28,14 +29,14 @@ class MainActivity : AppCompatActivity() {
 
         val vp2 = findViewById<ViewPager2>(R.id.vp2)
 
-        val mAdapter = VideoAdapter(hnimExo!!) {
+        val mAdapter = VideoAdapter(applicationContext, hnimExo!!) {
             vp2.currentItem = vp2.currentItem + 1
         }
 
         with(vp2) {
             mAdapter.submitList(getListVideo())
             adapter = mAdapter
-//            offscreenPageLimit = 1
+            offscreenPageLimit = 1
             hnimExo!!.attach(this)
         }
 
@@ -43,40 +44,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(
                 Intent(this, MainActivity2::class.java)
             )
-//            mAdapter.notifyDataSetChanged()
         }
-
-        testPool()
     }
-
-    val simplePool = Pools.SimplePool<Int>(5)
-    fun testPool() {
-        var i = simplePool.acquire()
-        Log.d(TAG, "testPool1: $i")
-        simplePool.release(1)
-        simplePool.release(2)
-        simplePool.release(3)
-        simplePool.release(4)
-        simplePool.release(5)
-        i = simplePool.acquire()
-        Log.d(TAG, "testPool2: $i")
-        simplePool.release(5)
-        simplePool.release(6)
-
-        i = simplePool.acquire()
-        Log.d(TAG, "testPool3: $i")
-        i = simplePool.acquire()
-        Log.d(TAG, "testPool4: $i")
-        i = simplePool.acquire()
-        Log.d(TAG, "testPool5: $i")
-        i = simplePool.acquire()
-        Log.d(TAG, "testPool6: $i")
-        i = simplePool.acquire()
-        Log.d(TAG, "testPool7: $i")
-
-    }
-
-    val TAG = "TestPool"
 
     private fun getListVideo() = listOf(
         VideoItem(
@@ -130,27 +99,27 @@ class MainActivity : AppCompatActivity() {
             "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
             "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/SubaruOutbackOnStreetAndDirt.jpg"
         ),
-        VideoItem(
-            "A sample video #11",
-            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
-            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/WeAreGoingOnBullrun.jpg"
-        ),
-
-        VideoItem(
-            "A sample video #12",
-            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
-            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/SubaruOutbackOnStreetAndDirt.jpg"
-        ),
-        VideoItem(
-            "A sample video #13",
-            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
-            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/WeAreGoingOnBullrun.jpg"
-        ),
-
-        VideoItem(
-            "A sample video #14",
-            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
-            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/SubaruOutbackOnStreetAndDirt.jpg"
-        ),
+//        VideoItem(
+//            "A sample video #11",
+//            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
+//            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/WeAreGoingOnBullrun.jpg"
+//        ),
+//
+//        VideoItem(
+//            "A sample video #12",
+//            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+//            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/SubaruOutbackOnStreetAndDirt.jpg"
+//        ),
+//        VideoItem(
+//            "A sample video #13",
+//            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
+//            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/WeAreGoingOnBullrun.jpg"
+//        ),
+//
+//        VideoItem(
+//            "A sample video #14",
+//            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+//            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/SubaruOutbackOnStreetAndDirt.jpg"
+//        ),
     )
 }

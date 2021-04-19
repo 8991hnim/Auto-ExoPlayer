@@ -6,7 +6,7 @@ import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ui.PlayerView
-import m.tech.demoexopool.hnim_exo.ExoProvider2
+import m.tech.demoexopool.hnim_exo.ExoProvider3
 import m.tech.demoexopool.hnim_exo.HnimExoController
 import java.lang.ref.WeakReference
 
@@ -15,7 +15,6 @@ import java.lang.ref.WeakReference
  * @since: 12/04/2021
  */
 class ExoController(
-    private val exoPool: Int,
     private val context: Context
 ) : HnimExoController {
 
@@ -24,84 +23,58 @@ class ExoController(
     private var isSaveState: Boolean = false
     private var isAutoMoveNext: Boolean = false
 
-    private val exoProvider: ExoProvider2 by lazy {
-        ExoProvider2(exoPool, WeakReference(context))
-    }
-
-    fun isPlayerExist(position: Int): Boolean {
-        return exoProvider.exoPlayers()[position] != null
+    private val exoProvider3: ExoProvider3 by lazy {
+        ExoProvider3(context)
     }
 
     //hàm thật sự play video
-    fun togglePlayer(currentPosition: Int) {
+    fun togglePlayer(currentPosition: Int, playerView: PlayerView?) {
         Log.d(TAG, "togglePlayer: $currentPosition")
+        if (playerView == null) return
 
-        exoProvider.setCurrentPosition(currentPosition)
-
-        exoProvider.exoPlayers().forEach {
-            if (!isSaveState) {
-                it.value.seekTo(0)
-            }
-            it.value.volume = if (isMuted) 0f else 1f
-
-            if (it.key == currentPosition) {
-                it.value.playWhenReady = autoPlay
-            } else {
-                it.value.playWhenReady = false
-            }
-        }
-    }
-
-    //sẽ được gọi nếu offscreenlimit của vp2 khác mặc định
-    fun setExoPool(exoPool: Int) {
-        exoProvider.setExoPool(exoPool)
+        exoProvider3.setupWith(currentPosition, playerView)
     }
 
     //gọi khi lifecycle onPause
     fun pauseAll() {
-        exoProvider.exoPlayers().values.forEach {
-            it.playWhenReady = false
-        }
+        exoProvider3.exoPlayer().playWhenReady = false
     }
 
     override fun setupWith(
         position: Int,
         source: String,
+        preloadSource: Array<String?>?,
         thumbSource: String?,
-        useController: Boolean,
-        playerView: PlayerView,
         thumbnail: AppCompatImageView?,
         loadingView: View?,
         listener: HnimExoPlayerListener
     ) {
-        exoProvider.setupWith(
+        exoProvider3.setupWith(
             position = position,
             source = source,
+            preloadSource = preloadSource,
             thumbSource = thumbSource,
             thumbnail = if (thumbnail != null) WeakReference(thumbnail) else null,
             loadingView = if (loadingView != null) WeakReference(loadingView) else null,
-            useController = useController,
-            playerView = WeakReference(playerView),
             isMoveToNext = isAutoMoveNext,
             listener = listener
         )
     }
 
     override fun play(position: Int) {
-        Log.d("MTEST2", "play controll: ${exoProvider.exoPlayers()[position]}")
-        exoProvider.exoPlayers()[position]?.playWhenReady = true
+        exoProvider3.exoPlayer().playWhenReady = true
     }
 
     override fun pause(position: Int) {
-        exoProvider.exoPlayers()[position]?.pause()
+        exoProvider3.exoPlayer().playWhenReady = false
     }
 
     override fun stop(position: Int) {
-        exoProvider.exoPlayers()[position]?.stop()
+        exoProvider3.exoPlayer().stop()
     }
 
     override fun seekTo(position: Int, positionMs: Long) {
-        exoProvider.exoPlayers()[position]?.seekTo(positionMs)
+        exoProvider3.exoPlayer().seekTo(positionMs)
     }
 
     override fun setAutoPlay(autoPlay: Boolean) {
@@ -110,7 +83,7 @@ class ExoController(
 
     override fun setMuted(position: Int, isMuted: Boolean) {
         this.isMuted = isMuted
-        exoProvider.exoPlayers()[position]?.volume = if (isMuted) 0f else 1f
+        exoProvider3.exoPlayer().volume = if (isMuted) 0f else 1f
     }
 
     override fun setSaveState(saveState: Boolean) {
@@ -122,7 +95,8 @@ class ExoController(
     }
 
     fun clear(isDestroy: Boolean) {
-        exoProvider.clear(isDestroy)
+        exoProvider3.exoPlayer().release()
+        exoProvider3.setCurrentPosition(0)
     }
 
     interface HnimExoPlayerListener {
