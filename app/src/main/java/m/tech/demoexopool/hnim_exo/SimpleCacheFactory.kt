@@ -23,6 +23,7 @@ object SimpleCacheFactory {
     var CACHE_DATASOURCE_FACTORY: CacheDataSource.Factory? = null
 
     private const val MAX_CACHE_SIZE = 100L * 1024L * 1024L
+    private const val MAX_PRE_CACHE_SIZE = 1L * 1024L * 1024L
     private const val CACHE_FOLDER_NAME = "media"
 
     private var cacheFile: File? = null
@@ -77,6 +78,7 @@ object SimpleCacheFactory {
             try {
                 val dataSpec = DataSpec.Builder()
                     .setUri(Uri.parse(source))
+                    .setLength(MAX_PRE_CACHE_SIZE)
                     .build()
 
                 CacheWriter(
