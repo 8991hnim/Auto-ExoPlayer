@@ -150,6 +150,7 @@ object SimpleCacheFactory {
 
     fun clearCache(context: Context) {
         cacheFile?.let { delete(it, ExoDatabaseProvider(context)) }
+        Glide.get(context).clearMemory() //should use this?
     }
 
     private fun Context.getUserAgent() = Util.getUserAgent(this, this.packageName ?: "Gapo")
