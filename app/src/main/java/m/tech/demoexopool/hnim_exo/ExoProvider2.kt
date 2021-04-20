@@ -24,6 +24,7 @@ import java.lang.ref.WeakReference
  * @author: 89hnim
  * @since: 14/04/2021
  * Using exo pool to speed up create Exo time
+ * time func [ExoProvider2.setupWith] ~20ms
  */
 class ExoProvider2
 constructor(
@@ -44,7 +45,7 @@ constructor(
                 it.release()
             else {
                 //t.h refresh feeds: k cần release hết instance exo, chỉ reset
-                it.stop(true)
+                it.stop()
                 exoSimplePool.release(it)
             }
         }
@@ -80,7 +81,6 @@ constructor(
     ) {
         Log.d(TAG, "setupWith: $position - ${playerView.hashCode()}")
 
-        //test time: average ~80ms setup done.
         val time = HnimExoUtils.executeTimeInMillis {
             context.get()?.let { context ->
                 if (exoPlayers[position] == null) {

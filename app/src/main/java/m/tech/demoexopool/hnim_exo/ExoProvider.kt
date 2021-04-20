@@ -22,7 +22,7 @@ import java.lang.ref.WeakReference
  * @author: 89hnim
  * @since: 12/04/2021
  * Old class: Not use Pool
- * average time setupWith function: 80ms
+ * average time func [ExoProvider.setupWith] ~80ms
  */
 class ExoProvider
 constructor(
