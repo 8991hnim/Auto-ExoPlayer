@@ -5,9 +5,8 @@ import androidx.core.view.get
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.gg.gapo.video.hnim_exo.ExoController
 import m.tech.demoexopool.VideoAdapter
-import m.tech.demoexopool.hnim_exo.BusEven.HE_MOVE_TO_NEXT
+import m.tech.demoexopool.hnim_exo.BusEvent.HE_MOVE_TO_NEXT
 import org.simple.eventbus.EventBus
 import org.simple.eventbus.Subscriber
 
@@ -68,7 +67,7 @@ class HnimExo(
 
     fun clear(isDestroy: Boolean) {
         if (isDestroy) {
-//            SimpleCacheFactory.clearCache()
+            controller.getContext()?.let { SimpleCacheFactory.clearCache(it) }
             vp2?.unregisterOnPageChangeCallback(onPageChange)
             vp2 = null
         }

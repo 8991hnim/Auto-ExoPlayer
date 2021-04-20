@@ -2,9 +2,11 @@ package m.tech.demoexopool.hnim_exo
 
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
-import com.gg.gapo.video.hnim_exo.ExoController
-import com.google.android.exoplayer2.ui.PlayerView
 
+/**
+ * @author: 89hnim
+ * @since: 12/04/2021
+ */
 interface HnimExoController {
 
     fun setupWith(

@@ -8,7 +8,6 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.util.Pools
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
-import com.gg.gapo.video.hnim_exo.ExoController
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.Player.*
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
@@ -23,7 +22,8 @@ import java.lang.ref.WeakReference
 
 /**
  * @author: 89hnim
- * @since: 12/04/2021
+ * @since: 14/04/2021
+ * Using exo pool to speed up create Exo time
  */
 class ExoProvider2
 constructor(
@@ -179,7 +179,7 @@ constructor(
                     }
                     STATE_ENDED -> {
                         if (isMoveToNext) {
-                            EventBus.getDefault().post(0, BusEven.HE_MOVE_TO_NEXT)
+                            EventBus.getDefault().post(0, BusEvent.HE_MOVE_TO_NEXT)
                         }
                         listener.onEnded()
                     }

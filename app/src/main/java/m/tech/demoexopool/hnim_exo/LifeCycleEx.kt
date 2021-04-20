@@ -4,10 +4,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 
-/*
-    The boolean value:
-    true: Continue observe
-    false: Stop observe
+/**
+ * @author: 89hnim
+ * @since: 13/04/2021
+ *  The boolean value:
+ *  true: Continue observe
+ *  false: Stop observe
  */
 fun Lifecycle.launchWhenStarted(action: () -> Boolean) {
     addObserver(object : LifecycleEventObserver {

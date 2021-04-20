@@ -1,4 +1,4 @@
-package com.gg.gapo.video.hnim_exo
+package m.tech.demoexopool.hnim_exo
 
 import android.content.Context
 import android.util.Log
@@ -6,8 +6,6 @@ import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ui.PlayerView
-import m.tech.demoexopool.hnim_exo.ExoProvider3
-import m.tech.demoexopool.hnim_exo.HnimExoController
 import java.lang.ref.WeakReference
 
 /**
@@ -15,7 +13,7 @@ import java.lang.ref.WeakReference
  * @since: 12/04/2021
  */
 class ExoController(
-    private val context: Context
+    private var context: Context?
 ) : HnimExoController {
 
     private var autoPlay: Boolean = false
@@ -24,7 +22,7 @@ class ExoController(
     private var isAutoMoveNext: Boolean = false
 
     private val exoProvider3: ExoProvider3 by lazy {
-        ExoProvider3(context)
+        ExoProvider3(context!!)
     }
 
     //hàm thật sự play video
@@ -97,9 +95,15 @@ class ExoController(
     }
 
     fun clear(isDestroy: Boolean) {
-        exoProvider3.exoPlayer().release()
-        exoProvider3.setCurrentPosition(0)
+        if (isDestroy) {
+            exoProvider3.exoPlayer().release()
+            context = null
+        } else {
+            exoProvider3.exoPlayer().stop()
+        }
     }
+
+    fun getContext(): Context? = context
 
     interface HnimExoPlayerListener {
         fun onBuffering() {}

@@ -7,24 +7,21 @@ import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
-import com.gg.gapo.video.hnim_exo.ExoController
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.Player.*
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.MediaSource
+import com.google.android.exoplayer2.source.dash.DashMediaSource
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.ui.PlayerView
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DefaultAllocator
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
-import m.tech.demoexopool.hnim_exo.SimpleCacheFactory.getUserAgent
 import org.simple.eventbus.EventBus
 import java.lang.ref.WeakReference
 
 /**
  * @author: 89hnim
- * @since: 12/04/2021
+ * @since: 19/04/2021
+ * Using single exoPlayer improve performance
  */
 class ExoProvider3
 constructor(
@@ -94,7 +91,6 @@ constructor(
         //callback
         registerPlayerListener(
             position = position,
-            exoPlayer = exoPlayer,
             thumbnail = thumbnail,
             loadingView = loadingView,
             isMoveToNext = isMoveToNext,
@@ -113,7 +109,6 @@ constructor(
 
     private fun registerPlayerListener(
         position: Int,
-        exoPlayer: SimpleExoPlayer,
         thumbnail: WeakReference<AppCompatImageView>?,
         loadingView: WeakReference<View>?,
         isMoveToNext: Boolean,
@@ -139,8 +134,8 @@ constructor(
                 super.onPlaybackStateChanged(state)
                 when (state) {
                     STATE_BUFFERING -> {
-                        Log.d(TAG, "onPlaybackStateChanged: buffering $position")
-                        if (position == currentPosition) {
+                        //nếu buffering ở đầu video thì mới show thumb
+                        if (position == currentPosition && exoPlayer.currentPosition <= 1000) {
                             thumbnail?.get()?.visibility = View.VISIBLE
                             loadingView?.get()?.visibility = View.VISIBLE
                         }
@@ -155,7 +150,7 @@ constructor(
                     }
                     STATE_ENDED -> {
                         if (isMoveToNext) {
-                            EventBus.getDefault().post(0, BusEven.HE_MOVE_TO_NEXT)
+                            EventBus.getDefault().post(0, BusEvent.HE_MOVE_TO_NEXT)
                         }
                         listener.onEnded()
                     }
@@ -168,7 +163,7 @@ constructor(
                 Log.d(TAG, "onIsPlayingChanged: $currentPosition $position")
                 if (isPlaying && currentPosition == position)
                     thumbnail?.get()?.visibility = View.GONE
-                else if (!isPlaying && currentPosition != position)
+                else if (!isPlaying && currentPosition != position && exoPlayer.currentPosition <= 1000)
                     thumbnail?.get()?.visibility = View.VISIBLE
             }
         })
@@ -182,21 +177,18 @@ constructor(
 
     private fun buildMediaSource(uri: Uri): MediaSource {
         val type = Util.inferContentType(uri)
-        val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(
-            context, context.getUserAgent()
-        )
+        val dataSourceFactory = SimpleCacheFactory.getCacheDataSource(context)
         val mediaItem = MediaItem.fromUri(uri)
         return when (type) {
-//                C.TYPE_DASH -> com.google.android.exoplayer2.source.dash.DashMediaSource.Factory(
-//                    dataSourceFactory
-//                ).createMediaSource(mediaItem)
+            C.TYPE_DASH -> DashMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(mediaItem)
 //                C.TYPE_SS -> com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource.Factory(
 //                    dataSourceFactory
 //                ).createMediaSource(mediaItem)
             C.TYPE_HLS -> HlsMediaSource.Factory(dataSourceFactory)
                 .setAllowChunklessPreparation(true) //faster start-up times
                 .createMediaSource(mediaItem)
-            else -> DefaultMediaSourceFactory(SimpleCacheFactory.getCacheDataSource(context))
+            else -> DefaultMediaSourceFactory(dataSourceFactory)
                 .createMediaSource(mediaItem)
         }
     }

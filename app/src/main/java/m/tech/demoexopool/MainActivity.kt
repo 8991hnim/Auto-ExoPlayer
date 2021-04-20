@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         with(vp2) {
             mAdapter.submitList(getListVideo())
             adapter = mAdapter
-            offscreenPageLimit = 1
+            offscreenPageLimit = 1 //must set before attach (if use)
             hnimExo!!.attach(this)
         }
 
@@ -90,13 +90,13 @@ class MainActivity : AppCompatActivity() {
         ),
         VideoItem(
             "A sample video #9",
-            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
+            "https://video-5a.gapo.vn/videos/results/6d20bf58-2972-4aa5-9bb5-031fe45bbbb9/720p/file.m3u8",
             "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/WeAreGoingOnBullrun.jpg"
         ),
 
         VideoItem(
             "A sample video #10",
-            "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+            "https://video-5a.gapo.vn/videos/results/05ebf212-9611-4477-8c28-e8a9cb7bfe21/720p/file.m3u8",
             "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/SubaruOutbackOnStreetAndDirt.jpg"
         ),
         VideoItem(
