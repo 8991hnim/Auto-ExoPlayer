@@ -5,11 +5,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import m.tech.demoexopool.hnim_exo.ExoController
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ui.PlayerView
@@ -68,7 +70,7 @@ class VideoAdapter(
 
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         super.onViewRecycled(holder)
-        Log.d("BindAdapter", "onViewRecycled: called")
+        if(holder is VideoHolder) holder.clear()
     }
 
     inner class VideoHolder
@@ -166,6 +168,11 @@ class VideoAdapter(
                 listener = listener
             )
 
+        }
+
+        fun clear(){
+            val thumbnail = itemView.findViewById<ImageView>(R.id.thumbnail)
+            Glide.with(thumbnail).clear(thumbnail)
         }
 
     }
