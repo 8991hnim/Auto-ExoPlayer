@@ -9,8 +9,8 @@ import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.Player.*
-import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.MediaSource
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.dash.DashMediaSource
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.ui.PlayerView
@@ -61,9 +61,9 @@ constructor(
             playerView.player = null
             playerView.player = this
             val mediaSource = buildMediaSource(Uri.parse(listVideos[position]))
-            this.setMediaSource(mediaSource)
+
             playWhenReady = true
-            prepare()
+            prepare(mediaSource)
 
             Log.d(TAG, "setupWith: playing $position - ${listVideos[position]}")
         }
@@ -130,8 +130,8 @@ constructor(
                 }
             }
 
-            override fun onPlaybackStateChanged(state: Int) {
-                super.onPlaybackStateChanged(state)
+            override fun onPlayerStateChanged(playWhenReady: Boolean, state: Int) {
+                super.onPlayerStateChanged(playWhenReady, state)
                 when (state) {
                     STATE_BUFFERING -> {
                         //nếu buffering ở đầu video thì mới show thumb
@@ -178,18 +178,16 @@ constructor(
     private fun buildMediaSource(uri: Uri): MediaSource {
         val type = Util.inferContentType(uri)
         val dataSourceFactory = SimpleCacheFactory.getCacheDataSource(context)
-        val mediaItem = MediaItem.fromUri(uri)
         return when (type) {
             C.TYPE_DASH -> DashMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(mediaItem)
+                .createMediaSource(uri)
 //                C.TYPE_SS -> com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource.Factory(
 //                    dataSourceFactory
 //                ).createMediaSource(mediaItem)
             C.TYPE_HLS -> HlsMediaSource.Factory(dataSourceFactory)
                 .setAllowChunklessPreparation(true) //faster start-up times
-                .createMediaSource(mediaItem)
-            else -> DefaultMediaSourceFactory(dataSourceFactory)
-                .createMediaSource(mediaItem)
+                .createMediaSource(uri)
+            else -> ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri)
         }
     }
 

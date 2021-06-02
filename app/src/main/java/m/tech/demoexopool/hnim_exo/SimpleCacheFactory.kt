@@ -6,14 +6,14 @@ import android.util.Log
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.database.ExoDatabaseProvider
-import com.google.android.exoplayer2.source.dash.offline.DashDownloader
+import com.google.android.exoplayer2.offline.DownloaderConstructorHelper
+import com.google.android.exoplayer2.source.dash.DashMediaSource
 import com.google.android.exoplayer2.source.hls.offline.HlsDownloader
 import com.google.android.exoplayer2.upstream.DataSpec
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.upstream.cache.CacheDataSource
-import com.google.android.exoplayer2.upstream.cache.CacheWriter
+import com.google.android.exoplayer2.upstream.cache.CacheDataSourceFactory
+import com.google.android.exoplayer2.upstream.cache.CacheUtil
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.google.android.exoplayer2.upstream.cache.SimpleCache.delete
@@ -30,7 +30,7 @@ import java.io.File
 object SimpleCacheFactory {
 
     private var INSTANCE: SimpleCache? = null
-    private var CACHE_FACTORY_INSTANCE: CacheDataSource.Factory? = null
+    private var CACHE_FACTORY_INSTANCE: CacheDataSourceFactory? = null
 
     private const val MAX_CACHE_SIZE = 100L * 1024L * 1024L
     private const val MAX_PRE_CACHE_SIZE = 1L * 1024L * 1024L
@@ -56,16 +56,15 @@ object SimpleCacheFactory {
         return INSTANCE!!
     }
 
-    fun getCacheDataSource(context: Context): CacheDataSource.Factory {
+    fun getCacheDataSource(context: Context): CacheDataSourceFactory {
         if (CACHE_FACTORY_INSTANCE == null) {
-            CACHE_FACTORY_INSTANCE = CacheDataSource.Factory()
-                .setCache(getInstance(context))
-                .setUpstreamDataSourceFactory(
-                    DefaultDataSourceFactory(
-                        context,
-                        context.getUserAgent()
-                    )
+            CACHE_FACTORY_INSTANCE = CacheDataSourceFactory(
+                getInstance(context),
+                DefaultDataSourceFactory(
+                    context,
+                    context.getUserAgent()
                 )
+            )
         }
         return CACHE_FACTORY_INSTANCE!!
     }
@@ -98,7 +97,7 @@ object SimpleCacheFactory {
 
             try {
                 when (type) {
-                    C.TYPE_DASH -> cacheDash(context, source)
+//                    C.TYPE_DASH -> cacheDash(context, source) //no support dash in this legacy version
                     C.TYPE_HLS -> cacheHls(context, source)
                     else -> cacheDefault(context, source)
                 }
@@ -109,22 +108,23 @@ object SimpleCacheFactory {
         }
     }
 
-    private fun cacheDash(context: Context, source: String) {
-        val dashDownloader = DashDownloader(
-            MediaItem.fromUri(Uri.parse(source)), getCacheDataSource(context)
-        )
-
-        dashDownloader.download { contentLength, bytesDownloaded, percentDownloaded ->
-            if (bytesDownloaded >= MAX_PRE_CACHE_SIZE) {
-                dashDownloader.cancel()
-            }
-        }
-    }
+//    private fun cacheDash(context: Context, source: String) {
+//        val dashDownloader =   DashMediaSource.Factory(getCacheDataSource(context)).createMediaSource(Uri.parse(source))
+////        val dashDownloader = DashDownloader(
+////            MediaItem.fromUri(Uri.parse(source)), getCacheDataSource(context)
+////        )
+//        dashDownloader.download { contentLength, bytesDownloaded, percentDownloaded ->
+//            if (bytesDownloaded >= MAX_PRE_CACHE_SIZE) {
+//                dashDownloader.cancel()
+//            }
+//        }
+//    }
 
     private fun cacheHls(context: Context, source: String) {
-        val hlsDownloader = HlsDownloader(
-            MediaItem.fromUri(Uri.parse(source)), getCacheDataSource(context)
-        )
+        val downloaderHelper =
+            DownloaderConstructorHelper(getInstance(context), getCacheDataSource(context))
+        val hlsDownloader =
+            HlsDownloader(Uri.parse(source), listOf(), downloaderHelper)
 
         hlsDownloader.download { contentLength, bytesDownloaded, percentDownloaded ->
             if (bytesDownloaded >= MAX_PRE_CACHE_SIZE) {
@@ -134,18 +134,15 @@ object SimpleCacheFactory {
     }
 
     private fun cacheDefault(context: Context, source: String) {
-        val dataSpec = DataSpec.Builder()
-            .setUri(Uri.parse(source))
-            .setLength(MAX_PRE_CACHE_SIZE)
-            .build()
+        val dataSpec = DataSpec(Uri.parse(source), 0, MAX_PRE_CACHE_SIZE, null)
 
-        CacheWriter(
-            getCacheDataSource(context).createDataSource(),
+        CacheUtil.cache(
             dataSpec,
-            true,
+            getInstance(context),
+            getCacheDataSource(context).createDataSource(),
             null,
             null
-        ).cache()
+        )
     }
 
     fun clearCache(context: Context) {
